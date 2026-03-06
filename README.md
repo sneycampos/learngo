@@ -73,7 +73,7 @@ The build process:
 
 Topics are just markdown files with Go code blocks:
 
-```markdown
+````markdown
 # Topic Title
 
 Brief description here.
@@ -93,7 +93,7 @@ func main() {
 ```
 expected output here
 ```
-```
+````
 
 To add a new topic:
 1. Create a `.md` file in `content/`
