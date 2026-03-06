@@ -102,6 +102,17 @@ indexHtml = indexHtml.replace(
 fs.writeFileSync(path.join(distDir, 'index.html'), indexHtml);
 console.log('✅ Added Prism theme to HTML');
 
+// Copy SEO files
+console.log('\n📄 Copying SEO files...');
+if (fs.existsSync(path.join(__dirname, 'robots.txt'))) {
+  fs.copyFileSync(path.join(__dirname, 'robots.txt'), path.join(distDir, 'robots.txt'));
+  console.log('✅ Copied robots.txt');
+}
+if (fs.existsSync(path.join(__dirname, 'sitemap.xml'))) {
+  fs.copyFileSync(path.join(__dirname, 'sitemap.xml'), path.join(distDir, 'sitemap.xml'));
+  console.log('✅ Copied sitemap.xml');
+}
+
 console.log('\n🎉 Build complete!\n');
 console.log('Removed CDNs:');
 console.log('  ✓ marked.js (bundled)');

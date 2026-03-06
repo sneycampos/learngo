@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://learngo.sney.eu/sitemap.xml
