@@ -1,0 +1,19 @@
+# Cloudflare Pages build configuration
+# This file configures how Cloudflare Pages builds your site
+
+[build]
+  # Build command to run
+  command = "npm run build"
+  
+  # Directory to publish (relative to root)
+  publish = "dist"
+
+[build.environment]
+  # Node.js version
+  NODE_VERSION = "18"
+
+# Redirect rules (optional)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
