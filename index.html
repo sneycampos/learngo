@@ -6,17 +6,29 @@
   <title>Go Learn - Learn Go Programming</title>
   <meta name="description" content="Learn Go programming with 52 hands-on examples. From basics to advanced topics including goroutines, channels, and modern Go 1.23 features.">
   <link rel="canonical" href="https://learngo.sney.eu/">
-  
+
   <!-- Open Graph -->
   <meta property="og:title" content="Go Learn - Learn Go Programming">
   <meta property="og:description" content="Learn Go programming with 52 hands-on examples. From basics to advanced topics.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://learngo.sney.eu/">
-  
+
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Go Learn - Learn Go Programming">
   <meta name="twitter:description" content="Learn Go programming with 52 hands-on examples. From basics to advanced topics.">
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-93XS1XPMEY"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-93XS1XPMEY');
+  </script>
+
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
@@ -28,23 +40,23 @@
   <style>
     * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
     code, pre, code *, pre * { font-family: 'JetBrains Mono', monospace !important; }
-    
+
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
-    
+
     html { scroll-behavior: smooth; }
     ::selection { background: #bfdbfe; color: #1e3a8a; }
-    
+
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
     .animate-fade-in { animation: fadeIn 0.3s ease-out; }
-    
+
     .sidebar-transition { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-    
+
     /* Markdown styles */
     .markdown-content h1 { font-size: 2.25rem; font-weight: 800; color: #111827; margin-bottom: 1rem; line-height: 1.2; }
     .markdown-content h2 { font-size: 1.5rem; font-weight: 700; color: #111827; margin-top: 2rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e5e7eb; }
@@ -59,10 +71,10 @@
     .markdown-content th, .markdown-content td { border: 1px solid #e5e7eb; padding: 0.75rem; text-align: left; }
     .markdown-content th { background: #f9fafb; font-weight: 600; }
     .markdown-content hr { border: none; border-top: 1px solid #e5e7eb; margin: 2rem 0; }
-    
+
     /* Inline code */
     .markdown-content code:not(pre code) { background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.875rem; color: #dc2626; }
-    
+
     /* Prism.js code blocks */
     .markdown-content pre[class*="language-"] {
       border-radius: 0.75rem;
@@ -75,7 +87,7 @@
       line-height: 1.7;
       text-shadow: none;
     }
-    
+
     /* Code block wrapper with header */
     .code-block-wrapper {
       position: relative;
@@ -111,7 +123,7 @@
       border-radius: 0;
       box-shadow: none;
     }
-    
+
     /* Copy button */
     .copy-button {
       display: flex;
@@ -135,7 +147,7 @@
       background: #059669;
       color: white;
     }
-    
+
     /* Output block */
     .output-block-wrapper {
       position: relative;
@@ -167,7 +179,7 @@
       white-space: pre-wrap;
       overflow-x: auto;
     }
-    
+
     /* Line clamp */
     .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   </style>
@@ -199,7 +211,7 @@
             <span>Browse</span>
             <kbd class="px-1.5 py-0.5 text-xs bg-gray-100 rounded border border-gray-200">⌘B</kbd>
           </button>
-          
+
           <button onclick="toggleMobileMenu()" class="lg:hidden p-2 hover:bg-gray-100 rounded-lg">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
@@ -259,9 +271,9 @@
           <span class="text-sm font-medium">Back to topics</span>
         </button>
       </div>
-      
+
       <div id="topic-content" class="markdown-content"></div>
-      
+
       <div class="flex items-center justify-between pt-8 border-t border-gray-200 mt-8">
         <button id="prev-btn" onclick="showPrevTopic()" class="flex items-center gap-2 px-4 py-2.5 rounded-lg text-gray-300 cursor-not-allowed" disabled>
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
