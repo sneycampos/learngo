@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "A static site for learning Go programming",
   "scripts": {
-    "build": "node build.js",
-    "preview": "npx serve dist",
-    "dev": "npm run build && npm run preview"
+    "build": "vite build",
+    "preview": "vite preview",
+    "dev": "vite"
   },
   "main": "app.js",
   "keywords": [],
@@ -17,8 +17,10 @@
     "prismjs": "^1.30.0"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.2.1",
     "autoprefixer": "^10.4.27",
     "postcss": "^8.5.8",
-    "tailwindcss": "^4.2.1"
+    "tailwindcss": "^4.2.1",
+    "vite": "^8.0.0"
   }
 }

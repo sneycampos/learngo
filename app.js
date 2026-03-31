@@ -1,3 +1,9 @@
+import './src/styles.css';
+import { marked } from 'marked';
+import Prism from 'prismjs';
+import 'prismjs/components/prism-go';
+import 'prismjs/themes/prism-tomorrow.css';
+
 // Go Learn - Markdown-based Go Learning Site
 
 // Configure marked.js with Prism syntax highlighting
@@ -82,9 +88,48 @@ const topicManifest = {
 // State
 let currentTopicIndex = -1;
 let expandedCategories = new Set(['basics', 'concurrency', 'stdlib']);
+const READ_PROGRESS_KEY = 'golearn.readTopics.v1';
+let readTopicIds = new Set();
+
+function loadReadProgress() {
+  try {
+    const saved = localStorage.getItem(READ_PROGRESS_KEY);
+    if (!saved) return;
+    const ids = JSON.parse(saved);
+    if (Array.isArray(ids)) {
+      readTopicIds = new Set(ids);
+    }
+  } catch (error) {
+    console.warn('Failed to load read progress:', error);
+  }
+}
+
+function saveReadProgress() {
+  localStorage.setItem(READ_PROGRESS_KEY, JSON.stringify(Array.from(readTopicIds)));
+}
+
+function isTopicRead(topicId) {
+  return readTopicIds.has(topicId);
+}
+
+function markTopicRead(topicId) {
+  if (readTopicIds.has(topicId)) return false;
+  readTopicIds.add(topicId);
+  saveReadProgress();
+  return true;
+}
+
+function getReadCount() {
+  return readTopicIds.size;
+}
+
+function getReadCountByCategory(categoryId) {
+  return topicManifest.topics.filter(t => t.category === categoryId && isTopicRead(t.id)).length;
+}
 
 // Initialize
 async function init() {
+  loadReadProgress();
   renderHome();
   renderSidebar();
   renderMobileMenu();
@@ -250,6 +295,13 @@ async function loadTopic(topicId) {
     badge.style.color = category.color;
     badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full" style="background-color: ${category.color}"></span>${category.name}`;
     contentDiv.insertBefore(badge, contentDiv.firstChild);
+
+    const isNewlyRead = markTopicRead(topicId);
+    if (isNewlyRead) {
+      renderHome();
+      renderMobileMenu();
+      updateStats();
+    }
     
   } catch (error) {
     contentDiv.innerHTML = `<div class="text-center py-12 text-gray-500"><p>Failed to load topic content.</p></div>`;
@@ -339,6 +391,7 @@ function showNextTopic() {
 // Render home page categories
 function renderHome() {
   const container = document.getElementById('categories-container');
+  container.innerHTML = '';
   
   for (const [catId, category] of Object.entries(topicManifest.categories)) {
     const topics = topicManifest.topics.filter(t => t.category === catId);
@@ -365,9 +418,18 @@ function renderHome() {
 
 // Render topic card
 function renderTopicCard(topic, color) {
+  const readBadge = isTopicRead(topic.id)
+    ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700 ml-2">Read</span>'
+    : '';
   const badge = topic.badge ? `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700 ml-2">${topic.badge}</span>` : '';
+  const cardStateClasses = isTopicRead(topic.id)
+    ? 'border-green-200 bg-green-50/30 hover:border-green-300'
+    : 'border-gray-100 hover:border-gray-200';
+  const trailingIcon = isTopicRead(topic.id)
+    ? `<svg class="w-5 h-5 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`
+    : `<svg class="w-5 h-5 text-gray-300 group-hover:text-gray-500 group-hover:translate-x-0.5 transition-all flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>`;
   return `
-    <button onclick="navigateTo('${topic.id}')" class="w-full text-left bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:shadow-md hover:border-gray-200 hover:-translate-y-0.5 transition-all duration-300 group">
+    <button onclick="navigateTo('${topic.id}')" class="w-full text-left bg-white rounded-xl p-5 shadow-sm border ${cardStateClasses} hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group">
       <div class="flex items-start gap-3">
         <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style="background-color: ${color}15">
           <svg class="w-5 h-5" style="color: ${color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -378,12 +440,11 @@ function renderTopicCard(topic, color) {
           <div class="flex items-center">
             <h3 class="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">${topic.title}</h3>
             ${badge}
+            ${readBadge}
           </div>
           <p class="text-sm text-gray-500 mt-1 line-clamp-2">${topic.description}</p>
         </div>
-        <svg class="w-5 h-5 text-gray-300 group-hover:text-gray-500 group-hover:translate-x-0.5 transition-all flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-        </svg>
+        ${trailingIcon}
       </div>
     </button>
   `;
@@ -401,14 +462,19 @@ function getIcon(type, color) {
 
 // Update stats
 function updateStats() {
+  const readCount = getReadCount();
+  const progress = topicManifest.topics.length > 0
+    ? Math.round((readCount / topicManifest.topics.length) * 100)
+    : 0;
+
   document.getElementById('stats-container').innerHTML = `
     <div class="text-center"><div class="text-3xl md:text-4xl font-bold text-gray-900 mb-1">${topicManifest.topics.length}</div><div class="text-gray-500">Topics</div></div>
+    <div class="text-center"><div class="text-3xl md:text-4xl font-bold text-green-600 mb-1">${readCount}</div><div class="text-gray-500">Read</div></div>
     <div class="text-center"><div class="text-3xl md:text-4xl font-bold text-gray-900 mb-1">${Object.keys(topicManifest.categories).length}</div><div class="text-gray-500">Categories</div></div>
-    <div class="text-center"><div class="text-3xl md:text-4xl font-bold text-gray-900 mb-1">66</div><div class="text-gray-500">Code Examples</div></div>
-    <div class="text-center"><div class="text-3xl md:text-4xl font-bold text-gray-900 mb-1">∞</div><div class="text-gray-500">Possibilities</div></div>
+    <div class="text-center"><div class="text-3xl md:text-4xl font-bold text-gray-900 mb-1">${progress}%</div><div class="text-gray-500">Progress</div></div>
   `;
-  document.getElementById('sidebar-topic-count').textContent = `${topicManifest.topics.length} topics available`;
-  document.getElementById('sidebar-footer-count').textContent = `${topicManifest.topics.length} total topics`;
+  document.getElementById('sidebar-topic-count').textContent = `${readCount}/${topicManifest.topics.length} topics read`;
+  document.getElementById('sidebar-footer-count').textContent = `${topicManifest.topics.length - readCount} unread`;
 }
 
 // Sidebar
@@ -443,6 +509,8 @@ function renderSidebar(topicsToRender = null) {
     
     const isExpanded = expandedCategories.has(catId);
     const currentId = currentTopicIndex >= 0 ? topicManifest.topics[currentTopicIndex].id : null;
+    const categoryTotalTopics = topicManifest.topics.filter(t => t.category === catId).length;
+    const categoryReadTopics = getReadCountByCategory(catId);
     
     html += `
       <div class="border border-gray-100 rounded-xl overflow-hidden">
@@ -453,7 +521,7 @@ function renderSidebar(topicsToRender = null) {
             </div>
             <div class="text-left">
               <span class="font-semibold text-gray-900">${category.name}</span>
-              <span class="text-xs text-gray-500 ml-2">(${catTopics.length})</span>
+              <span class="text-xs text-gray-500 ml-2">(${categoryReadTopics}/${categoryTotalTopics} read)</span>
             </div>
           </div>
           <svg class="w-5 h-5 text-gray-400 transition-transform duration-200 ${isExpanded ? '' : '-rotate-90'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -462,21 +530,34 @@ function renderSidebar(topicsToRender = null) {
         </button>
         <div class="overflow-hidden transition-all duration-200 ${isExpanded ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}">
           <div class="p-2 space-y-1">
-            ${catTopics.map(t => `
-              <button onclick="navigateTo('${t.id}'); closeSidebar();" 
-                class="w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all ${currentId === t.id ? 'bg-blue-50 text-blue-600 font-medium ring-1 ring-blue-200' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}">
-                <div class="flex items-center gap-2">
-                  <div class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background-color: ${category.color}"></div>
-                  <span class="truncate">${t.title}</span>
-                </div>
-              </button>
-            `).join('')}
+            ${catTopics.map(t => renderSidebarTopicItem(t, category, currentId)).join('')}
           </div>
         </div>
       </div>
     `;
   }
   container.innerHTML = html;
+}
+
+function renderSidebarTopicItem(topic, category, currentId) {
+  const topicRead = isTopicRead(topic.id);
+  const dotOrCheck = topicRead
+    ? '<svg class="w-3.5 h-3.5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>'
+    : `<div class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background-color: ${category.color}"></div>`;
+  const readBadge = topicRead
+    ? '<span class="ml-auto text-[11px] font-medium text-green-700 bg-green-100 px-1.5 py-0.5 rounded">Read</span>'
+    : '';
+
+  return `
+    <button onclick="navigateTo('${topic.id}'); closeSidebar();" 
+      class="w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all ${currentId === topic.id ? 'bg-blue-50 text-blue-600 font-medium ring-1 ring-blue-200' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'} ${topicRead && currentId !== topic.id ? 'text-green-700' : ''}">
+      <div class="flex items-center gap-2">
+        ${dotOrCheck}
+        <span class="truncate">${topic.title}</span>
+        ${readBadge}
+      </div>
+    </button>
+  `;
 }
 
 function toggleCategory(catId) {
@@ -549,8 +630,13 @@ function renderMobileMenu() {
         </div>
         <div class="ml-2 space-y-1">
           ${topics.map(t => `
-            <button onclick="navigateTo('${t.id}'); closeMobileMenu();" class="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
-              ${t.title}
+            <button onclick="navigateTo('${t.id}'); closeMobileMenu();" class="w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${isTopicRead(t.id) ? 'text-green-700 bg-green-50/50 hover:bg-green-100/50' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}">
+              <span class="flex items-center gap-2">
+                ${isTopicRead(t.id)
+                  ? '<svg class="w-3.5 h-3.5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>'
+                  : `<span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background-color: ${category.color}"></span>`}
+                <span>${t.title}</span>
+              </span>
             </button>
           `).join('')}
         </div>
@@ -559,6 +645,22 @@ function renderMobileMenu() {
   }
   container.innerHTML = html;
 }
+
+Object.assign(window, {
+  navigateTo,
+  showTopicsSection,
+  toggleSidebar,
+  closeSidebar,
+  toggleMobileMenu,
+  closeMobileMenu,
+  handleSidebarSearch,
+  expandAll,
+  collapseAll,
+  showPrevTopic,
+  showNextTopic,
+  copyCode,
+  toggleCategory
+});
 
 // Initialize
 document.addEventListener('DOMContentLoaded', init);
