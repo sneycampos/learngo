@@ -4,6 +4,11 @@ import Prism from 'prismjs';
 import 'prismjs/components/prism-go';
 import 'prismjs/themes/prism-tomorrow.css';
 
+const topicContentModules = import.meta.glob('./content/*.md', {
+  query: '?raw',
+  import: 'default'
+});
+
 // Go Learn - Markdown-based Go Learning Site
 
 // Configure marked.js with Prism syntax highlighting
@@ -228,10 +233,11 @@ async function loadTopic(topicId) {
   contentDiv.innerHTML = '<div class="flex items-center justify-center py-12"><div class="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full"></div></div>';
   
   try {
-    const response = await fetch(`content/${topicId}.md`);
-    if (!response.ok) throw new Error('Failed to load');
-    
-    let markdown = await response.text();
+    const topicPath = `./content/${topicId}.md`;
+    const loadTopicContent = topicContentModules[topicPath];
+    if (!loadTopicContent) throw new Error('Topic content not found');
+
+    let markdown = await loadTopicContent();
     
     // Custom renderer for code blocks
     const renderer = new marked.Renderer();
