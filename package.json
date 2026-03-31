@@ -5,7 +5,8 @@
   "scripts": {
     "build": "vite build",
     "preview": "vite preview",
-    "dev": "vite"
+    "dev": "vite",
+    "test:e2e": "playwright test"
   },
   "main": "app.js",
   "keywords": [],
@@ -17,6 +18,7 @@
     "prismjs": "^1.30.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.53.0",
     "@tailwindcss/vite": "^4.2.1",
     "autoprefixer": "^10.4.27",
     "postcss": "^8.5.8",

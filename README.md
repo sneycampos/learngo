@@ -29,7 +29,7 @@ npm install
 npm run dev
 ```
 
-Then open http://localhost:3000
+Then open http://localhost:5173
 
 ### Build for production
 
@@ -48,6 +48,23 @@ The `dist/` folder will contain the built site ready for deployment.
 
 Or connect your GitHub repo for automatic deployments on every push.
 
+## Tests
+
+Run the end-to-end suite locally:
+
+```bash
+npm run test:e2e
+```
+
+What is covered:
+- Home page renders
+- Topic markdown loads correctly
+- Read progress persists across reloads
+- Sidebar and mobile read indicators update
+
+CI:
+- GitHub Actions runs this E2E suite on pull requests and on pushes to `master`
+
 ## Project structure
 
 ```
@@ -58,16 +75,17 @@ content/           # All the markdown content
 └── ... (52 topics total)
 
 app.js             # Main application and topic manifest
-build.js           # Build script that bundles everything
+vite.config.js     # Vite + Tailwind config
 index.html         # Source HTML template
 src/styles.css     # Source styles (Tailwind)
+playwright.config.js
+tests/e2e/         # Playwright E2E tests
 ```
 
 The build process:
-1. Reads all markdown files from `content/`
-2. Bundles them into a JavaScript object
-3. Combines with marked.js and prism.js
-4. Outputs to `dist/` as static files
+1. Vite bundles JavaScript, CSS, and dependencies
+2. Markdown files from `content/` are bundled via `import.meta.glob`
+3. Output is generated to `dist/` for static hosting
 
 ## Content format
 
